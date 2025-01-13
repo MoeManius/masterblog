@@ -10,26 +10,21 @@ def index():
     with open('posts.json', 'r') as file:
         blog_posts = json.load(file)
 
-    # Render the blog posts
     return render_template('index.html', posts=blog_posts)
 
 
 @app.route('/add', methods=['GET', 'POST'])
 def add():
     if request.method == 'POST':
-        # Get form data from the request
         title = request.form.get('title')
         author = request.form.get('author')
         content = request.form.get('content')
 
-        # Read the existing posts from the JSON file
         with open('posts.json', 'r') as file:
             blog_posts = json.load(file)
 
-        # Generate a new ID based on the existing posts
         new_id = max(post['id'] for post in blog_posts) + 1 if blog_posts else 1
 
-        # Create a new blog post
         new_post = {
             'id': new_id,
             'author': author,
@@ -37,17 +32,31 @@ def add():
             'content': content
         }
 
-        # Add the new post to the list of blog posts
         blog_posts.append(new_post)
 
-        # Write the updated list back to the JSON file
         with open('posts.json', 'w') as file:
             json.dump(blog_posts, file, indent=4)
 
-        # Redirect to the home page after adding the post
         return redirect(url_for('index'))
 
     return render_template('add.html')
+
+
+@app.route('/delete/<int:post_id>', methods=['POST', 'GET'])
+def delete(post_id):
+    # Read the posts from the JSON file
+    with open('posts.json', 'r') as file:
+        blog_posts = json.load(file)
+
+    # Remove the blog post with the matching ID
+    blog_posts = [post for post in blog_posts if post['id'] != post_id]
+
+    # Write the updated posts back to the file
+    with open('posts.json', 'w') as file:
+        json.dump(blog_posts, file, indent=4)
+
+    # Redirect back to the home page
+    return redirect(url_for('index'))
 
 
 if __name__ == '__main__':
