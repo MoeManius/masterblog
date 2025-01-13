@@ -4,30 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blog</title>
-    <style>
-        /* Styling for the page */
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Blog Posts</h1>
+    <h1>My Blog</h1>
 
-    <!-- Link to Add a new post -->
-    <a href="/add">Add a New Post</a>
+    <!-- Loop through all the posts -->
+    {% for post in posts %}
+        <div class="post">
+            <h2>{{ post['title'] }}</h2>
+            <p><strong>Author:</strong> {{ post['author'] }}</p>
+            <p>{{ post['content'] }}</p>
 
-    <div class="posts">
-        {% for post in posts %}
-            <div class="post">
-                <h2>{{ post.title }}</h2>
-                <p><strong>Author:</strong> {{ post.author }}</p>
-                <p>{{ post.content }}</p>
-                <!-- Update Button -->
-                <a href="/update/{{ post.id }}">Update</a>
-                <!-- Delete Button -->
-                <form action="/delete/{{ post.id }}" method="POST" style="display: inline;">
-                    <button type="submit">Delete</button>
-                </form>
-            </div>
-        {% endfor %}
-    </div>
+            <!-- Likes Section -->
+            <p>Likes: {{ post['likes'] }}</p>
+            <form action="{{ url_for('like', post_id=post['id']) }}" method="POST" style="display:inline;">
+                <button type="submit">Like</button>
+            </form>
+
+            <!-- Edit and Delete Buttons -->
+            <a href="{{ url_for('update', post_id=post['id']) }}">Edit</a>
+            <form action="{{ url_for('delete', post_id=post['id']) }}" method="POST" style="display:inline;">
+                <button type="submit">Delete</button>
+            </form>
+        </div>
+        <hr>
+    {% endfor %}
+
+    <!-- Add New Post Link -->
+    <a href="{{ url_for('add') }}">Add New Post</a>
 </body>
 </html>
