@@ -4,12 +4,22 @@ import json
 app = Flask(__name__)
 
 
-@app.route('/')
-def index():
+def fetch_post_by_id(post_id):
     # Fetch blog posts from the JSON file
     with open('posts.json', 'r') as file:
         blog_posts = json.load(file)
 
+    # Find the post with the matching ID
+    for post in blog_posts:
+        if post['id'] == post_id:
+            return post
+    return None
+
+
+@app.route('/')
+def index():
+    with open('posts.json', 'r') as file:
+        blog_posts = json.load(file)
     return render_template('index.html', posts=blog_posts)
 
 
@@ -24,14 +34,7 @@ def add():
             blog_posts = json.load(file)
 
         new_id = max(post['id'] for post in blog_posts) + 1 if blog_posts else 1
-
-        new_post = {
-            'id': new_id,
-            'author': author,
-            'title': title,
-            'content': content
-        }
-
+        new_post = {'id': new_id, 'author': author, 'title': title, 'content': content}
         blog_posts.append(new_post)
 
         with open('posts.json', 'w') as file:
@@ -42,21 +45,30 @@ def add():
     return render_template('add.html')
 
 
-@app.route('/delete/<int:post_id>', methods=['POST', 'GET'])
-def delete(post_id):
-    # Read the posts from the JSON file
+@app.route('/update/<int:post_id>', methods=['GET', 'POST'])
+def update(post_id):
     with open('posts.json', 'r') as file:
         blog_posts = json.load(file)
 
-    # Remove the blog post with the matching ID
-    blog_posts = [post for post in blog_posts if post['id'] != post_id]
+    # Find the post by ID
+    post = next((post for post in blog_posts if post['id'] == post_id), None)
 
-    # Write the updated posts back to the file
-    with open('posts.json', 'w') as file:
-        json.dump(blog_posts, file, indent=4)
+    if not post:
+        return "Post not found", 404
 
-    # Redirect back to the home page
-    return redirect(url_for('index'))
+    if request.method == 'POST':
+        # Update post details
+        post['title'] = request.form.get('title')
+        post['author'] = request.form.get('author')
+        post['content'] = request.form.get('content')
+
+        # Save the updated posts list back to the file
+        with open('posts.json', 'w') as file:
+            json.dump(blog_posts, file, indent=4)
+
+        return redirect(url_for('index'))
+
+    return render_template('update.html', post=post)
 
 
 if __name__ == '__main__':
